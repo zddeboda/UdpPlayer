@@ -55,14 +55,14 @@ public class Media extends VLCObject<Media.Event> {
 
         /**
          * Get the ParsedStatus in case of {@link Event#ParsedChanged} event
-         * @return {@link Media.ParsedStatus}
+         * @return {@link ParsedStatus}
          */
         public int getParsedStatus() {
             return (int) arg1;
         }
     }
 
-    public interface EventListener extends VLCEvent.Listener<Media.Event> {}
+    public interface EventListener extends VLCEvent.Listener<Event> {}
 
     /**
      * libvlc_media_type_t
@@ -425,7 +425,6 @@ public class Media extends VLCObject<Media.Event> {
      * @param path an absolute local path
      */
     public Media(LibVLC libVLC, String path) {
-        super(libVLC);
         nativeNewFromPath(libVLC, path);
         mUri = VLCUtil.UriFromMrl(nativeGetMrl());
     }
@@ -437,8 +436,7 @@ public class Media extends VLCObject<Media.Event> {
      * @param uri a valid RFC 2396 Uri
      */
     public Media(LibVLC libVLC, Uri uri) {
-        super(libVLC);
-        nativeNewFromLocation(libVLC, VLCUtil.encodeVLCUri(uri));
+        nativeNewFromLocation(libVLC, VLCUtil.locationFromUri(uri));
         mUri = uri;
     }
 
@@ -449,7 +447,6 @@ public class Media extends VLCObject<Media.Event> {
      * @param fd file descriptor object
      */
     public Media(LibVLC libVLC, FileDescriptor fd) {
-        super(libVLC);
         nativeNewFromFd(libVLC, fd);
         mUri = VLCUtil.UriFromMrl(nativeGetMrl());
     }
@@ -460,7 +457,6 @@ public class Media extends VLCObject<Media.Event> {
      * @param index index of the Media from the MediaList
      */
     protected Media(MediaList ml, int index) {
-        super(ml);
         if (ml == null || ml.isReleased())
             throw new IllegalArgumentException("MediaList is null or released");
         if (!ml.isLocked())
@@ -474,7 +470,7 @@ public class Media extends VLCObject<Media.Event> {
     }
 
     @Override
-    protected synchronized Event onEventNative(int eventType, long arg1, long arg2, float argf1) {
+    protected synchronized Event onEventNative(int eventType, long arg1, float arg2) {
         switch (eventType) {
         case Event.MetaChanged:
             // either we update all metas (if first call) or we update a specific meta
@@ -725,7 +721,7 @@ public class Media extends VLCObject<Media.Event> {
 
 
     private static String getMediaCodecModule() {
-        return AndroidUtil.isLolliPopOrLater ? "mediacodec_ndk" : "mediacodec_jni";
+        return AndroidUtil.isLolliPopOrLater() ? "mediacodec_ndk" : "mediacodec_jni";
     }
 
     /**
@@ -735,19 +731,14 @@ public class Media extends VLCObject<Media.Event> {
      * @param force force hw acceleration even for unknown devices
      */
     public void setHWDecoderEnabled(boolean enabled, boolean force) {
-        HWDecoderUtil.Decoder decoder = enabled ?
+        final HWDecoderUtil.Decoder decoder = enabled ?
                 HWDecoderUtil.getDecoderFromDevice() :
                 HWDecoderUtil.Decoder.NONE;
 
-        /* Unknown device but the user asked for hardware acceleration */
-        if (decoder == HWDecoderUtil.Decoder.UNKNOWN && force)
-            decoder = HWDecoderUtil.Decoder.ALL;
-
-        if (decoder == HWDecoderUtil.Decoder.NONE || decoder == HWDecoderUtil.Decoder.UNKNOWN) {
+        if (decoder == HWDecoderUtil.Decoder.NONE || (decoder == HWDecoderUtil.Decoder.UNKNOWN && !force)) {
             addOption(":codec=all");
             return;
         }
-
         /*
          * Set higher caching values if using iomx decoding, since some omx
          * decoders have a very high latency, and if the preroll data isn't
@@ -757,8 +748,12 @@ public class Media extends VLCObject<Media.Event> {
          * for 320x170 H.264, a few packets less on higher resolutions.
          * On Nexus S, the decoder latency seems to be about 7 packets.
          */
-        addOption(":file-caching=1500");
-        addOption(":network-caching=1500");
+        //addOption(":file-caching=1500");
+        //addOption(":network-caching=1500");
+        //addOption("--network-caching=180");
+        //addOption("--sout-mux-caching=180");
+        addOption(":file-caching=10000");
+        addOption(":network-caching=10000");
 
         final StringBuilder sb = new StringBuilder(":codec=");
         if (decoder == HWDecoderUtil.Decoder.MEDIACODEC || decoder == HWDecoderUtil.Decoder.ALL)

@@ -29,7 +29,8 @@ public class DataUtils {
 		for (int i = 0; i < pic.length; i++) {
 			TeleVisionBean bean = new TeleVisionBean();
 			bean.setPic_id(pic[i]);
-			bean.setUrl("udp://@239.192.0."+i+":1234");
+			int j= i+1;
+			bean.setUrl("udp://@239.192.0."+j+":1234");
 			mlist.add(bean);
 		}
 		return mlist;

@@ -141,14 +141,14 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
         final IVLCVout vlcVout = mMediaPlayer.getVLCVout();
         vlcVout.setVideoView(mVideoSurface);
         vlcVout.attachViews(this);
-
-        //if (mPath.startsWith("upd")){
-        mMedia = new Media(mLibVLC, Uri.parse(mPath));
+        LogUtils.i("mPath=="+mPath);
+        if (mPath.startsWith("upd")){
+        	mMedia = new Media(mLibVLC, Uri.parse(mPath));
         //}else if(mPath.contains("Download")){
          // mMedia = new Media(mLibVLC, mPath);
-        //}else{
-        //    mMedia = new Media(mLibVLC, mLocation);
-        //}
+        }else{
+            mMedia = new Media(mLibVLC, mPath);
+        }
 
         mMediaPlayer.setMedia(mMedia);
         mMediaPlayer.play();

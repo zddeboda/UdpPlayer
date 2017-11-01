@@ -24,7 +24,6 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
-import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.libvlc.util.HWDecoderUtil;
 
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 @SuppressWarnings("unused, JniMissingFunction")
 public class LibVLC extends VLCObject<LibVLC.Event> {
     private static final String TAG = "VLC/LibVLC";
-    final Context mAppContext;
 
     public static class Event extends VLCEvent {
         protected Event(int type) {
@@ -46,24 +44,25 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
      * @param options
      */
     public LibVLC(Context context, ArrayList<String> options) {
-        mAppContext = context.getApplicationContext();
         loadLibraries();
 
-        if (options == null)
-            options = new ArrayList<String>();
         boolean setAout = true, setChroma = true;
         // check if aout/vout options are already set
-        for (String option : options) {
-            if (option.startsWith("--aout="))
-                setAout = false;
-            if (option.startsWith("--android-display-chroma"))
-                setChroma = false;
-            if (!setAout && !setChroma)
-                break;
+        if (options != null) {
+            for (String option : options) {
+                if (option.startsWith("--aout="))
+                    setAout = false;
+                if (option.startsWith("--android-display-chroma"))
+                    setChroma = false;
+                if (!setAout && !setChroma)
+                    break;
+            }
         }
 
         // set aout/vout options if they are not set
         if (setAout || setChroma) {
+            if (options == null)
+                options = new ArrayList<String>();
             if (setAout) {
                 final HWDecoderUtil.AudioOutput hwAout = HWDecoderUtil.getAudioOutputFromDevice();
                 if (hwAout == HWDecoderUtil.AudioOutput.OPENSLES)
@@ -73,21 +72,8 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
             }
             if (setChroma) {
                 options.add("--android-display-chroma");
-                options.add("RV16");
+                options.add("RV32");
             }
-        }
-
-        /* XXX: HACK to remove when we drop 2.3 support: force android_display vout */
-        if (!AndroidUtil.isHoneycombOrLater) {
-            boolean setVout = true;
-            for (String option : options) {
-                if (option.startsWith("--vout")) {
-                    setVout = false;
-                    break;
-                }
-            }
-            if (setVout)
-                options.add("--vout=android_display,none");
         }
 
         nativeNew(options.toArray(new String[options.size()]), context.getDir("vlc", Context.MODE_PRIVATE).getAbsolutePath());
@@ -119,7 +105,7 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
     public native String changeset();
 
     @Override
-    protected Event onEventNative(int eventType, long arg1, long arg2, float argf1) {
+    protected Event onEventNative(int eventType, long arg1, float arg2) {
         return null;
     }
 
@@ -146,7 +132,7 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
 
     private static boolean sLoaded = false;
 
-    public static synchronized void loadLibraries() {
+    static synchronized void loadLibraries() {
         if (sLoaded)
             return;
         sLoaded = true;

@@ -129,8 +129,13 @@ public class TelevisionFragement extends Fragment {
 		@Override
 		public void onItemClick(AdapterView<?> adapter, View view, int position, long offset) {
 			// LogUtils.i("mLocation===" + mLocation);
-			// startPlayerUdp(ConnectIP.mLocation);
-			startPlayerUdp(mList1.get(position).getUrl());
+			
+			if (position > 10 ) {//测试当前位置大于10，播本地
+				startPlayerUdp(ConnectIP.mLocation);
+			}else {
+				startPlayerUdp("udp://@239.192.0.2:1234");
+				//startPlayerUdp(mList1.get(position).getUrl());
+			}
 		}
 	};
 
@@ -138,8 +143,8 @@ public class TelevisionFragement extends Fragment {
 	private OnItemClickListener itemClicklistener2 = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> adapter, View view, int position, long offset) {
-			// startPlayerUdp("udp://@239.192.0.1:1234");
-			startPlayerUdp(mList2.get(position).getUrl());
+			startPlayerUdp("udp://@239.192.0.1:1234");
+			//startPlayerUdp(mList2.get(position).getUrl());
 		}
 	};
 	

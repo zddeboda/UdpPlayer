@@ -21,7 +21,6 @@
 package org.videolan.libvlc.util;
 
 import android.net.Uri;
-import android.os.Handler;
 import android.support.annotation.MainThread;
 import android.util.Log;
 
@@ -41,19 +40,16 @@ public class MediaBrowser {
     private MediaList mBrowserMediaList;
     private Media mMedia;
     private EventListener mEventListener;
-    private Handler mHandler;
     private boolean mAlive;
 
     private static final String IGNORE_LIST_OPTION =  ":ignore-filetypes=";
-    private String mIgnoreList = "db,nfo,ini,jpg,jpeg,ljpg,gif,png,pgm,pgmyuv,pbm,pam,tga,bmp,pnm,xpm,xcf,pcx,tif,tiff,lbm,sfv,txt,sub,idx,srt,ssa,ass,smi,utf,utf-8,rt,aqt,txt,usf,jss,cdg,psb,mpsub,mpl2,pjs,dks,stl,vtt,ttml";
+    private String mIgnoreList = "db,nfo,ini,jpg,jpeg,ljpg,gif,png,pgm,pgmyuv,pbm,pam,tga,bmp,pnm,xpm,xcf,pcx,tif,tiff,lbm,sfv,txt,sub,idx,srt,cue,ssa";
 
     public static class Flag {
         /** If this flag is set, browse() could fire up dialogs */
         public final static int Interact = 1;
         /** If this flag is set, slaves won't be attached to medias but will be added as a media. */
         public final static int NoSlavesAutodetect = 1 << 1;
-        /** If this flag is set, hidden fils won't be ignored */
-        public final static int ShowHiddenFiles = 1 << 2;
     }
 
     /**
@@ -80,29 +76,11 @@ public class MediaBrowser {
         void onBrowseEnd();
     }
 
-     /**
-     *
-     * @param libvlc The LibVLC instance to use
-     * @param listener The Listener which will receive callbacks
-     *
-     * With this constructor, callbacks will be executed in the main thread
-     */
     public MediaBrowser(LibVLC libvlc, EventListener listener) {
         mLibVlc = libvlc;
         mLibVlc.retain();
         mEventListener = listener;
         mAlive = true;
-    }
-
-    /**
-     *
-     * @param libvlc The LibVLC instance to use
-     * @param listener The Listener which will receive callbacks
-     * @param handler Optional Handler in which callbacks will be posted. If set to null, a Handler will be created running on the main thread
-     */
-    public MediaBrowser(LibVLC libvlc, EventListener listener, Handler handler) {
-        this(libvlc, listener);
-        mHandler = handler;
     }
 
     private void reset() {
@@ -147,7 +125,7 @@ public class MediaBrowser {
         MediaDiscoverer md = new MediaDiscoverer(mLibVlc, discovererName);
         mMediaDiscoverers.add(md);
         final MediaList ml = md.getMediaList();
-        ml.setEventListener(mDiscovererMediaListEventListener, mHandler);
+        ml.setEventListener(mDiscovererMediaListEventListener);
         ml.release();
         md.start();
     }
@@ -183,7 +161,7 @@ public class MediaBrowser {
      * Browse to the specified local path starting with '/'.
      *
      * @param path
-     * @param flags see {@link MediaBrowser.Flag}
+     * @param flags see {@link Flag}
      */
     @MainThread
     public void browse(String path, int flags) {
@@ -196,7 +174,7 @@ public class MediaBrowser {
      * Browse to the specified uri.
      *
      * @param uri
-     * @param flags see {@link MediaBrowser.Flag}
+     * @param flags see {@link Flag}
      */
     @MainThread
     public void browse(Uri uri, int flags) {
@@ -209,7 +187,7 @@ public class MediaBrowser {
      * Browse to the specified media.
      *
      * @param media Can be a media returned by MediaBrowser.
-     * @param flags see {@link MediaBrowser.Flag}
+     * @param flags see {@link Flag}
      */
     @MainThread
     public void browse(Media media, int flags) {
@@ -220,14 +198,12 @@ public class MediaBrowser {
         media.addOption(IGNORE_LIST_OPTION + mIgnoreList);
         if ((flags & Flag.NoSlavesAutodetect) != 0)
             media.addOption(":no-sub-autodetect-file");
-        if ((flags & Flag.ShowHiddenFiles) != 0)
-            media.addOption(":show-hiddenfiles");
         int mediaFlags = Media.Parse.ParseNetwork;
         if ((flags & Flag.Interact) != 0)
             mediaFlags |= Media.Parse.DoInteract;
         reset();
         mBrowserMediaList = media.subItems();
-        mBrowserMediaList.setEventListener(mBrowserMediaListEventListener, mHandler);
+        mBrowserMediaList.setEventListener(mBrowserMediaListEventListener);
         media.parseAsync(mediaFlags, 0);
         mMedia = media;
     }
