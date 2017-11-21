@@ -79,7 +79,7 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
         super.onCreate(savedInstanceState);
         setContentView(R.layout.localvideoplayphone);
         isDisplay = true;
-        Constans.isPlayStart = true;
+        //Constans.isPlayStart = true;
         setVlcOptions();
         mLibVLC = new LibVLC(this, options);
         mMediaPlayer = new MediaPlayer(mLibVLC);
@@ -114,39 +114,29 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
 
     @Override
     protected void onStart() {
-        super.onStart();
-
         LogUtils.i("vlc play onStart");
-        if (Constans.isPlayStart) {
-            onDrawView();
-        }
+        onDrawView();
+        super.onStart();
     }
 
     @Override
     protected void onResume() {
+    	LogUtils.i("onResume");
         super.onResume();
-        LogUtils.i("vlc play onResume mLibVLC == null=="+(mLibVLC == null));
-        if (!Constans.isPlayStart) {
-            porraitToLandscape();
-            final IVLCVout vlcVout = mMediaPlayer.getVLCVout();
-            vlcVout.setVideoView(mVideoSurface);
-            vlcVout.attachViews(this);
-
-
-        }
     }
 
     private void onDrawView() {
-
         final IVLCVout vlcVout = mMediaPlayer.getVLCVout();
         vlcVout.setVideoView(mVideoSurface);
         vlcVout.attachViews(this);
-        LogUtils.i("mPath=="+mPath);
-        if (mPath.startsWith("upd")){
+        LogUtils.i("onDrawView mPath=="+mPath);
+        if (mPath.contains("1234")){
+        	LogUtils.i("url ==UPD");
         	mMedia = new Media(mLibVLC, Uri.parse(mPath));
         //}else if(mPath.contains("Download")){
          // mMedia = new Media(mLibVLC, mPath);
         }else{
+        	LogUtils.i("url ==location");
             mMedia = new Media(mLibVLC, mPath);
         }
 
@@ -178,10 +168,8 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
     @Override
     protected void onDestroy() {
         LogUtils.i("VlcVideoPlay onDestroy");
-        super.onDestroy();
         //关闭资源
-        //CloseVideo();
-
+        CloseVideo();
         if (mLibVLC != null) {
             mMediaPlayer.stop();
             mMediaPlayer.release();
@@ -193,30 +181,26 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
             mMedia.release();
             mMedia = null;
         }
-
         closeSocket();
         isDisplay = false;
-
+        super.onDestroy();
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
         LogUtils.i("vlc play onPause");
+        super.onPause();
     }
 
     @Override
     protected void onStop() {
         LogUtils.i("VLC onStop");
-        super.onStop();
-
         if (mLibVLC != null) {
             mMediaPlayer.pause();
             mMediaPlayer.getVLCVout().detachViews();
         }
-
-        Constans.isPlayStart = false;
-
+        //Constans.isPlayStart = false;
+        super.onStop();
     }
 
     @Override
@@ -322,8 +306,8 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
     public void onBackPressed() {
         //super.onBackPressed();
         LogUtils.i("zdd onBackPressed");
-            CloseVideo();
-            finish();
+        //CloseVideo();
+        finish();
     }
 
     private void setVlcOptions() {
@@ -415,10 +399,7 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
         mMediaPlayer.getVLCVout().setWindowSize(sw, sh);
 
         ViewGroup.LayoutParams lp = mVideoSurface.getLayoutParams();
-        //LogUtils.i("zdd  VlcVideoPlayPhone mVideoWidth=="+mVideoWidth);
-        //LogUtils.i("zdd  VlcVideoPlayPhone mVideoHeight=="+mVideoHeight);
         if (mVideoWidth * mVideoHeight == 0) {
-            //LogUtils.i("zdd  VlcVideoPlayPhone 11111");
             /* Case of OpenGL vouts: handles the placement of the video using MediaPlayer API */
             //lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
             //lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -511,8 +492,6 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
         // set display size
         lp.width = (int) Math.ceil(dw * mVideoWidth / mVideoVisibleWidth);
         lp.height = (int) Math.ceil(dh * mVideoHeight / mVideoVisibleHeight);
-        LogUtils.i("zdd  VlcVideoPlayPhone==lp.width=="+lp.width);
-        LogUtils.i("zdd  VlcVideoPlayPhone==lp.height=="+lp.height);
         mVideoSurface.setLayoutParams(lp);
 
         // set frame size (crop if necessary)
@@ -539,7 +518,7 @@ public class VlcVideoPlayActivity extends Activity implements IVLCVout.OnNewVide
         }
 
         closeSocket();
-        Constans.isPlayStart = true;
+        //Constans.isPlayStart = true;
 
     }
 

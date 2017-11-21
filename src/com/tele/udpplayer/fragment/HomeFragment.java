@@ -29,6 +29,16 @@ public class HomeFragment extends Fragment implements OnClickListener{
 		television = (TextView) view.findViewById(R.id.television);
 		television.setOnClickListener(this);
 	}
+	
+	@Override
+	public void onHiddenChanged(boolean hidden) {
+		super.onHiddenChanged(hidden);
+		if (hidden) {
+			Constans.isHomeDisplay = false;
+		}else {
+			Constans.isHomeDisplay = true;
+		}
+	}
 
 	@Override
 	public void onClick(View view) {

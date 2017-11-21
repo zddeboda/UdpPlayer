@@ -436,7 +436,8 @@ public class Media extends VLCObject<Media.Event> {
      * @param uri a valid RFC 2396 Uri
      */
     public Media(LibVLC libVLC, Uri uri) {
-        nativeNewFromLocation(libVLC, VLCUtil.locationFromUri(uri));
+        //nativeNewFromLocation(libVLC, VLCUtil.locationFromUri(uri));
+    	nativeNewFromLocation(libVLC, uri.toString());
         mUri = uri;
     }
 

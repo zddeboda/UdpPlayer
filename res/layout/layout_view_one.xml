@@ -10,6 +10,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="28px"
         android:horizontalSpacing="38px"
+        android:cacheColorHint="@null"
         android:listSelector="@android:color/transparent"
         android:numColumns="5"
         android:paddingLeft="20px"

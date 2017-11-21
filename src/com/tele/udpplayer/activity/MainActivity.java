@@ -12,14 +12,17 @@ import com.tele.udpplayer.utils.LogUtils;
 import com.tele.udpplayer.utils.NetUtils;
 import com.tele.udpplayer.utils.TimeUtils;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -37,8 +40,29 @@ public class MainActivity extends FragmentActivity {
 	private MainReceiver receiver;
 	
 	private TextView tv_netStatus;//网络状态
-	private TextView tv_time;//网络状态
+	private TextView tv_time;//网络状态 
+    
+	 private static final int REQUEST_EXTERNAL_STORAGE = 1;
 
+	private static String[] PERMISSIONS_STORAGE = {
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.WRITE_EXTERNAL_STORAGE" };
+
+
+    public static void verifyStoragePermissions(Activity activity) {
+        try {
+        //检测是否有写的权限
+            int permission = ActivityCompat.checkSelfPermission(activity,
+                    "android.permission.WRITE_EXTERNAL_STORAGE");
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+        // 没有写的权限，去申请写的权限，会弹出对话框
+                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE,REQUEST_EXTERNAL_STORAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +71,7 @@ public class MainActivity extends FragmentActivity {
 		initFragment();
 		initReceiver();
 		initview();
+		verifyStoragePermissions(this);
 		mHandler.sendEmptyMessage(103);//获取时间
 	}
 	
@@ -75,6 +100,7 @@ public class MainActivity extends FragmentActivity {
 			}else if (intent.getAction().equals(Constans.BRO_SWITCH_TELEVISION)) {
 				//切换television界面
 				showFragment(televisionFragement);
+				mHandler.sendEmptyMessageDelayed(105, 100);
 			}else if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {  
 	            boolean netWorkState = NetUtils.getNetWorkState(context);  
 	            if (netWorkState) {
@@ -105,6 +131,9 @@ public class MainActivity extends FragmentActivity {
 				break;
 			case 104:
 				tv_time.setText(TimeUtils.getTime());
+				break;
+			case 105:
+				televisionFragement.displayFragement();
 				break;
 			}
 		}
@@ -165,6 +194,22 @@ public class MainActivity extends FragmentActivity {
 		if (televisionFragement == null && fragment instanceof TelevisionFragement) {
 			televisionFragement = (TelevisionFragement) fragment;
 		}
+	}
+	
+	@Override
+	public void onBackPressed() {
+		LogUtils.i("onBackPressed");
+		if (!Constans.isHomeDisplay) {
+			showFragment(homeFragment);
+		}else {
+			finish();
+		}
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		unregisterReceiver(receiver);
 	}
 
 }

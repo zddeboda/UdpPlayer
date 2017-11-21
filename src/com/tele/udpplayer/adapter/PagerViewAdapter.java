@@ -2,8 +2,9 @@ package com.tele.udpplayer.adapter;
 
 import java.util.List;
 
+import com.tele.udpplayer.view.MyViewPager;
+
 import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -27,13 +28,13 @@ public class PagerViewAdapter extends PagerAdapter{
 	
 	@Override
 	public Object instantiateItem(ViewGroup container, int position) {
-		((ViewPager) container).addView(mList.get(position));
+		((MyViewPager) container).addView(mList.get(position));
 		return mList.get(position);
 	}
 
 	@Override
 	public void destroyItem(ViewGroup container, int position, Object object) {
-		((ViewPager) container).removeView(mList.get(position));
+		((MyViewPager) container).removeView(mList.get(position));
 	}
 
 }
